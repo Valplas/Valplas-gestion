@@ -13,7 +13,8 @@ var googleClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
 var url = Environment.GetEnvironmentVariable("URL") ?? "http://localhost";
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 var rawUrl = $"{url}:{port}";
-
+Console.WriteLine(connectionString);
+Console.WriteLine(url);
 // Asegurar esquema http:// o https://
 var normalizedUrl = rawUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
     ? rawUrl
