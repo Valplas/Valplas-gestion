@@ -1,0 +1,1 @@
+export interface Mark{ key: string, location: google.maps.LatLngLiteral, adress:string }
