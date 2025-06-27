@@ -17,7 +17,7 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Local",
         "DB_CONNECTION": "Host=localhost;Port=5432;Username=postgres;Password=postgres;Database=valplas-local",
-        "GOOGLE_CLIENT_ID": "201638612337-n6n67qppi7jr2k7jib6riiasr5s5fdvl.apps.googleusercontent.com",
+        "GOOGLE_CLIENT_ID": "804490481757-b30a9ioocen59disbeiu6bhe7qqua0nm.apps.googleusercontent.com",
         "JWT_SECRET": "757b56bd47aa9abe1be9414fe8db455d83e1bb4889726ed970562ed8f337010b30e894a5f339ac41231ccc1be844d7b251171169da1d30ab03d9c00aff0a1ccfa2870a785aa5bd3d6dd5a89448834fb3e3797e6073676614c43fc464dc553cec35b69ef8078cf3a3c3e4991d35628503b2c21ab67061520362f94f129d9fd0925a3551754c59b401e4157b0200d8482d58785c04fdbd432f715494d9590680fbbdbc460192141a1c3217f3d611d36c744bcf6969535f424648d7372241ec38408fa400f61a0e1ff50c782a91d031a31725d62bafff0757d533d1fe361d1c4795a1946c4abf129ad3cc377e7bdff32add53befd334194b77cef636ba2b3a1935c",
         "URL": "http://localhost",
         "PORT": "8080"
