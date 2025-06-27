@@ -14,8 +14,7 @@ import { useSnackbar } from '../../feature/Snackbar/SnackbarContext';
 import { BACKEND_URL } from '../../envs';
 import Loader from '../../common/Loader/Loader';
 import { BsPrinterFill } from 'react-icons/bs';
-import { PrintableOrder } from '../../components/molecules/print/PrintableOrder';
-import jsPDF from 'jspdf';
+
 import { generatePDF } from '../../helpers/functions/generateOrderPDF';
 
 const headers = [
