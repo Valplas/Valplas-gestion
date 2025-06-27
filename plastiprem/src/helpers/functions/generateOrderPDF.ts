@@ -23,7 +23,7 @@ export const generatePDF = (order: OrderModel) => {
   const tableRows =
     order.orderProducts?.map((row: OrderProductModel) => [
       row.product.code,
-      `${row.product.name?row.product.name: ''}${row.product.description?' - '+row.product.description: ''}`,
+      row.product.description,
       row.quantity,
       `$${row.unitaryPrice}`,
       `$${(row.quantity * Number(row.unitaryPrice)).toFixed(2)}`,
