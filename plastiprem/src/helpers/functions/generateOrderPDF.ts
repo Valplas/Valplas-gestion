@@ -7,16 +7,13 @@ export const generatePDF = (order: OrderModel) => {
   const doc = new jsPDF();
 
   // ✅ Encabezado
-  doc.setFontSize(18);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(24); // 30% más grande
   doc.text(`Orden #${order.orderNumber}`, 14, 20);
 
-  doc.setFontSize(12);
+  doc.setFontSize(15); // 30% más grande
   doc.text(`Cliente: ${order.client?.clientName ?? ''}`, 14, 30);
-  doc.text(
-    `Fecha alta: ${dayjs(order.orderDate).format('DD/MM/YYYY')}`,
-    14,
-    38,
-  );
+  doc.text(`Fecha alta: ${dayjs(order.orderDate).format('DD/MM/YYYY')}`, 14, 38);
   doc.text(`Monto total: $${order.amount}`, 14, 46);
 
   // ✅ Espaciado para la tabla
@@ -37,26 +34,27 @@ export const generatePDF = (order: OrderModel) => {
     head: [['Código', 'Producto', 'Cantidad', 'Precio unitario', 'Subtotal']],
     body: tableRows,
     theme: 'grid',
- styles: {
-    fontSize: 10,
-    textColor: '#000000',     // texto negro
-    fillColor: [255, 255, 255] // fondo blanco
-  },
-  headStyles: {
-    fillColor: [255, 255, 255], // fondo blanco para encabezado
-    textColor: '#000000',
-    fontStyle: 'bold',
-    halign: 'left',
-  },
-  footStyles: {
-    fillColor: [255, 255, 255],
-    textColor: '#000000',
-    fontStyle: 'bold',
-    halign: 'left',
-  },
-  alternateRowStyles: {
-    fillColor: [255, 255, 255], // sin sombreado
-  },
+    styles: {
+      fontSize: 15,              
+      fontStyle: 'bold',         // negrita en todo
+      textColor: '#000000',
+      fillColor: [255, 255, 255],
+    },
+    headStyles: {
+      fillColor: [255, 255, 255],
+      textColor: '#000000',
+      fontStyle: 'bold',
+      halign: 'left',
+    },
+    footStyles: {
+      fillColor: [255, 255, 255],
+      textColor: '#000000',
+      fontStyle: 'bold',
+      halign: 'left',
+    },
+    alternateRowStyles: {
+      fillColor: [255, 255, 255],
+    },
     foot: [
       [
         { content: 'Total', colSpan: 4, styles: { halign: 'right' } },
@@ -70,5 +68,3 @@ export const generatePDF = (order: OrderModel) => {
   const pdfUrl = URL.createObjectURL(pdfBlob);
   window.open(pdfUrl, '_blank');
 };
-
-

@@ -1,4 +1,4 @@
-import { Fragment, lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { Fragment, lazy, Suspense, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { TableHeaders } from '../../components/molecules/table/TableHeaders';
 import { TableRow } from '../../components/molecules/table/TableRow';
@@ -14,8 +14,7 @@ import { useSnackbar } from '../../feature/Snackbar/SnackbarContext';
 import { BACKEND_URL } from '../../envs';
 import Loader from '../../common/Loader/Loader';
 import { BsPrinterFill } from 'react-icons/bs';
-import { PrintableOrder } from '../../components/molecules/print/PrintableOrder';
-import jsPDF from 'jspdf';
+
 import { generatePDF } from '../../helpers/functions/generateOrderPDF';
 
 const headers = [

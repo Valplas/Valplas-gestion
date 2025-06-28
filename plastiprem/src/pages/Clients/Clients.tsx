@@ -13,6 +13,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { useSnackbar } from '../../feature/Snackbar/SnackbarContext';
 import Loader from '../../common/Loader/Loader';
 import { BACKEND_URL } from '../../envs';
+import { Search } from '../../components/atoms/inputs/Search';
 
 const headers = [
   'Nombre',
@@ -29,13 +30,30 @@ export const Clients = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [value, setValue] = useState<string>('');
+  const [visibleClients, setVisibleClients] = useState<ClientModel[]>([]);
+  const { showSnackbar } = useSnackbar();
 
   const { data, error, loading } = useFetch<ClientModel[]>(
     `${BACKEND_URL}/client`,
     [refresh],
   );
 
-  const { showSnackbar } = useSnackbar();
+  useEffect(() => {
+    if (!data) return;
+
+    const filteredClients = value
+      ? data.filter((client) =>
+          [client.clientCUIT, client.clientName, client.clientSurname]
+            .filter(Boolean)
+            .some((field) =>
+              (field as string).toLowerCase().includes(value.toLowerCase()),
+            ),
+        )
+      : data;
+
+    setVisibleClients(filteredClients);
+  }, [data, value]);
 
   useEffect(() => {
     if (error) {
@@ -47,9 +65,16 @@ export const Clients = () => {
     <>
       <PageContainer>
         <div className="flex justify-between items-center ">
-          <h4 className=" text-xl font-semibold text-black dark:text-white">
-            Clientes
-          </h4>
+          <div className="flex gap-2">
+            <h4 className=" text-xl font-semibold text-black dark:text-white">
+              Clientes
+            </h4>
+            <Search
+              onChange={setValue}
+              placeholder="Buscar Cliente por nombre, apellido, CUIT"
+              value={value}
+            />
+          </div>
           <Link
             to="/clients/new"
             className="inline-flex items-center  justify-center gap-2.5 rounded-full bg-meta-3 py-2 px-4 text-center font-bold text-lg text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
@@ -67,7 +92,7 @@ export const Clients = () => {
               ))}
             </div> // Muestra 5 filas de skeleton
           ) : (
-            data?.map((client, key) => (
+            visibleClients?.map((client, key) => (
               <TableRow
                 key={key}
                 content={{
@@ -103,14 +128,14 @@ export const Clients = () => {
               onDeleted={() => setRefresh((prev) => !prev)}
             />
           )}
-      
+
           {selectedClientId && isEditDialogOpen && (
             <EditClientDialog
               open={isEditDialogOpen}
               setOpen={setIsEditDialogOpen}
               clientId={selectedClientId}
               onEdited={() => setRefresh((prev) => !prev)}
-              onCancel={()=>setIsEditDialogOpen(false)}
+              onCancel={() => setIsEditDialogOpen(false)}
             />
           )}
         </Suspense>

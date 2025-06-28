@@ -37,23 +37,28 @@ public class ProductModelService
         {
             var query = _context.Products.AsQueryable();
 
-         if (!string.IsNullOrEmpty(search))
-{
-    search = search.ToLower();
-    query = query.Where(p =>
-        (p.Description != null && p.Description.ToLower().Contains(search)) ||
-        (p.Name != null && p.Name.ToLower().Contains(search)) ||
-        (p.Manufacturer != null && p.Manufacturer.ToLower().Contains(search)) ||
-        (p.Origin != null && p.Origin.ToLower().Contains(search)) ||
-        (p.Code != null && p.Code.ToString().Contains(search))
-    );
-}
+            if (!string.IsNullOrEmpty(search))
+            {
+                search = search.ToLower();
+                query = query.Where(p =>
+                    (p.Description != null && p.Description.ToLower().Contains(search)) ||
+                    (p.Name != null && p.Name.ToLower().Contains(search)) ||
+                    (p.Manufacturer != null && p.Manufacturer.ToLower().Contains(search)) ||
+                    (p.Origin != null && p.Origin.ToLower().Contains(search)) ||
+                    (p.Code != null && p.Code.ToString().Contains(search))
+                );
+            }
 
 
             if (business.HasValue)
             {
                 query = query.Where(p => p.Business == business);
             }
+
+            // ✅ Ordenar por Name (A-Z), y luego por Description (A-Z)
+            query = query
+                .OrderBy(p => p.Name)
+                .ThenBy(p => p.Description);
 
             return await query.ToListAsync();
         }
