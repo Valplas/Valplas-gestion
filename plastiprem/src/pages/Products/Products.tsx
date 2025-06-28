@@ -11,21 +11,41 @@ import { useSnackbar } from '../../feature/Snackbar/SnackbarContext';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { BACKEND_URL } from '../../envs';
 import Loader from '../../common/Loader/Loader';
+import { Search } from '../../components/atoms/inputs/Search';
 
-
-const headers = ['Nombre','Descripcion', 'Stock','Código', 'Marca', ' '];
+const headers = ['Nombre', 'Descripcion', 'Stock', 'Código', 'Marca', ' '];
 
 export const Products = () => {
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
-const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-const [isEditOpen, setIsEditOpen] = useState(false);
-const [refresh, setRefresh] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(
+    null,
+  );
+  const [value, setValue] = useState<string>('');
+  const [visibleProducts, setVisibleProducts] = useState<ProductModel[]>([]);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [refresh, setRefresh] = useState(false);
+  const { showSnackbar } = useSnackbar();
 
   const { data, loading, error } = useFetch<ProductModel[]>(
-    `${BACKEND_URL}/products`, [refresh]
+    `${BACKEND_URL}/products`,
+    [refresh],
   );
 
-  const { showSnackbar } = useSnackbar();
+useEffect(() => {
+  if (!data) return;
+
+  const filteredProducts = value
+    ? data.filter((prod) =>
+        [prod.name, prod.description]
+          .filter(Boolean)
+          .some((field) =>
+            (field as string).toLowerCase().includes(value.toLowerCase())
+          )
+      )
+    : data;
+
+  setVisibleProducts(filteredProducts);
+}, [data, value]);
 
   useEffect(() => {
     if (error) {
@@ -37,9 +57,16 @@ const [refresh, setRefresh] = useState(false);
     <>
       <PageContainer>
         <div className="flex justify-between items-center ">
-          <h4 className=" text-xl font-semibold text-black dark:text-white">
-            Productos
-          </h4>
+          <div className="flex gap-2">
+            <h4 className=" text-xl font-semibold text-black dark:text-white">
+              Productos
+            </h4>
+            <Search
+              onChange={setValue}
+              placeholder="Buscar Producto"
+              value={value}
+            />
+          </div>
           <Link
             to="/products/new"
             className="inline-flex items-center  justify-center gap-2.5 rounded-full bg-meta-3 py-2 px-4 text-center font-bold text-sm sm:text-lg text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
@@ -57,7 +84,7 @@ const [refresh, setRefresh] = useState(false);
               ))}
             </div> // Muestra 5 filas de skeleton
           ) : (
-            data?.map((product, key) => (
+            visibleProducts?.map((product, key) => (
               <TableRow
                 key={key}
                 content={{
@@ -67,44 +94,46 @@ const [refresh, setRefresh] = useState(false);
                   Código: product.code,
                   Marca: product?.manufacturer ?? '',
                 }}
-                actions={<TableActions 
-                  onDelete={() => {
-                    setSelectedProductId(product.productID);
-                    setIsDeleteOpen(true);
-                  }}
-                  onEdit={() => {
-                    setSelectedProductId(product.productID);
-                    setIsEditOpen(true);
-                  }} />}
+                actions={
+                  <TableActions
+                    onDelete={() => {
+                      setSelectedProductId(product.productID);
+                      setIsDeleteOpen(true);
+                    }}
+                    onEdit={() => {
+                      setSelectedProductId(product.productID);
+                      setIsEditOpen(true);
+                    }}
+                  />
+                }
               />
             ))
           )}
         </TableBodyContainer>
         <Suspense fallback={<Loader />}>
-  {selectedProductId && isDeleteOpen && (
-    <DeleteProductDialog
-      open={isDeleteOpen}
-      productId={selectedProductId}
-      setOpen={setIsDeleteOpen}
-      onDeleted={() => setRefresh(prev => !prev)}
-    />
-  )}
+          {selectedProductId && isDeleteOpen && (
+            <DeleteProductDialog
+              open={isDeleteOpen}
+              productId={selectedProductId}
+              setOpen={setIsDeleteOpen}
+              onDeleted={() => setRefresh((prev) => !prev)}
+            />
+          )}
 
-  {selectedProductId && isEditOpen && (
-    <EditProductDialog
-      open={isEditOpen}
-      productId={selectedProductId}
-      setOpen={setIsEditOpen}
-      onEdited={() => setRefresh(prev => !prev)}
-      onCancel={()=>setIsEditOpen(false)}
-    />
-  )}
-</Suspense>
+          {selectedProductId && isEditOpen && (
+            <EditProductDialog
+              open={isEditOpen}
+              productId={selectedProductId}
+              setOpen={setIsEditOpen}
+              onEdited={() => setRefresh((prev) => !prev)}
+              onCancel={() => setIsEditOpen(false)}
+            />
+          )}
+        </Suspense>
       </PageContainer>
     </>
   );
 };
-
 
 const DeleteProductDialog = lazy(
   () => import('../../components/molecules/modal/DeleteProductDialog'),
