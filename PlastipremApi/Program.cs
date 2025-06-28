@@ -6,6 +6,7 @@ using Valplas.DTO;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+Console.WriteLine($"Entorno actual: {builder.Environment.EnvironmentName}");
 
 // 1. Leer variables de entorno
 var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION");
@@ -13,8 +14,7 @@ var googleClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
 var url = Environment.GetEnvironmentVariable("URL") ?? "http://localhost";
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 var rawUrl = $"{url}:{port}";
-Console.WriteLine(connectionString);
-Console.WriteLine(url);
+
 // Asegurar esquema http:// o https://
 var normalizedUrl = rawUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
     ? rawUrl

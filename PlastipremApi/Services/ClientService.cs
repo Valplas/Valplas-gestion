@@ -14,7 +14,11 @@ public class ClientService
     }
     public async Task<IEnumerable<ClientModel>> GetAll()
     {
-        return await _context.Clients.AsNoTracking().ToListAsync();
+        return await _context
+        .Clients.AsNoTracking()
+        .OrderBy(c => c.ClientName ?? string.Empty)
+        .ThenBy(c => c.ClientDate ?? DateTime.MinValue) // Ordena por fecha de creación si hay empate
+        .ToListAsync();
     }
 
     // Obtener un cliente por su ID
