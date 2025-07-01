@@ -53,7 +53,7 @@ const Sidebar = ({  sidebarOpen, setSidebarOpen }: SidebarProps) => {
   return (
     <aside
       ref={sidebar}
-      className={`fixed right-0 top-0 z-9999 flex h-screen w-40 flex-col overflow-y-hidden bg-black duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0 ${
+      className={`fixed right-0 top-0 z-9999 flex h-screen w-44 flex-col overflow-y-hidden bg-black duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0 ${
         sidebarOpen ? 'translate-x-0' : 'translate-x-full'} `}
     >
 
@@ -152,6 +152,21 @@ const Sidebar = ({  sidebarOpen, setSidebarOpen }: SidebarProps) => {
                 <BsPersonWorkspace />
               </NavLink>
             </li>
+
+            <li
+              onClick={() => setSidebarOpen(false)}
+            >
+              <NavLink
+                to="/accounting"
+                className={`group relative flex lg:flex-row-reverse items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes('accounting') &&
+                  'bg-graydark dark:bg-meta-4'
+                  }`}
+              >
+
+                Contabilidad
+                <BsCalculator />
+              </NavLink>
+            </li>
             {/* 
             <li
               onClick={() => setSidebarOpen(false)}
@@ -226,20 +241,7 @@ const Sidebar = ({  sidebarOpen, setSidebarOpen }: SidebarProps) => {
                 <BsBucket />
               </NavLink>
             </li>
-            <li
-              onClick={() => setSidebarOpen(false)}
-            >
-              <NavLink
-                to="/accounting"
-                className={`group relative flex lg:flex-row-reverse items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${pathname.includes('accounting') &&
-                  'bg-graydark dark:bg-meta-4'
-                  }`}
-              >
-
-                Contabilidad y finanzas
-                <BsCalculator />
-              </NavLink>
-            </li>
+            
             <li
               onClick={() => setSidebarOpen(false)}
             >

@@ -18,7 +18,7 @@ import { Orders } from './pages/Orders/Orders';
 // import { Sellers } from './pages/Sellers/Sellers';
 // import { Stock } from './pages/Stock/Stock';
 // import { Buy } from './pages/Accounting/Buy';
-// import { Accounting } from './pages/Accounting/Accounting';
+import { Accounting } from './pages/Accounting/Accounting';
 // import { Sales } from './pages/Accounting/Sales';
 // import { NewSeller } from './pages/Sellers/New/NewSeller';
 // import { Logistics } from './pages/Logistics/Logistics';
@@ -72,15 +72,15 @@ function App() {
               </PrivateRoute>
             }
           />
-            <Route
-              path="/clients/new"
-              element={
-                <PrivateRoute>
-                  <PageTitle title="Nuevo cliente | Valplas Gestión" />
-                  <NewClient />
-                </PrivateRoute>
-              }
-            />
+          <Route
+            path="/clients/new"
+            element={
+              <PrivateRoute>
+                <PageTitle title="Nuevo cliente | Valplas Gestión" />
+                <NewClient />
+              </PrivateRoute>
+            }
+          />
           <Route
             path="/clients"
             index
@@ -109,8 +109,17 @@ function App() {
               </PrivateRoute>
             }
           />
-          <Route path="/" element={<Navigate to="/orders"  />} />
-          <Route path="*" element={<Navigate to="/orders"  />} />
+          <Route
+            path="/accounting"
+            element={
+              <PrivateRoute>
+                <PageTitle title="Contabilidad y finanzas | Valplas Gestión" />
+                <Accounting />
+              </PrivateRoute>
+            }
+          />
+          <Route path="/" element={<Navigate to="/orders" />} />
+          <Route path="*" element={<Navigate to="/orders" />} />
         </Routes>
       </DefaultLayout>
     </AuthProvider>
@@ -196,15 +205,7 @@ export default App;
     </PrivateRoute>
   }
 />
-<Route
-  path="/accounting"
-  element={
-    <PrivateRoute>
-      <PageTitle title="Contabilidad y finanzas | Valplas Gestión" />
-      <Accounting />
-    </PrivateRoute>
-  }
-/>
+
 <Route
   path="/logistics"
   element={
