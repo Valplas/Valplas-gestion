@@ -75,6 +75,7 @@ public class ClientModel
 
     // clientDate: z.string().transform((str) => new Date(str)).optional()
     public DateTime? ClientDate { get; set; }
+public bool IsDeleted { get; set; } = false;
 
     // Relación uno a muchos con OrdenDeCompra
     public ICollection<OrderModel> Orders { get; set;} = new List<OrderModel>();
