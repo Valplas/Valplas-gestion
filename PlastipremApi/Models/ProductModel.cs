@@ -52,6 +52,8 @@ namespace Valplas.Models
 
         // Propiedad de navegación para la relación muchos a muchos
 
+        public bool IsDeleted { get; set; } = false;
+
         public ICollection<OrderProductModel> OrderProducts { get; set; } = new List<OrderProductModel>();
 
     }
