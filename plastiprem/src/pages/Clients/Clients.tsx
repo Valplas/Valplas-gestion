@@ -1,11 +1,9 @@
 import { Link } from 'react-router-dom';
 import useFetch from '../../hooks/useFetch';
 import { ClientModel } from '../../types/clients.type';
-import { useAsyncSimulator } from '../../hooks/useAsyncSimulator';
 import { SkeletonRow } from '../../components/atoms/skeleton/SkeletonRow';
 import { TableHeaders } from '../../components/molecules/table/TableHeaders';
 import { TableRow } from '../../components/molecules/table/TableRow';
-import { fakeFetch } from '../../helpers/functions/fakeFetch';
 import { PageContainer } from '../../components/atoms/container/PageContainer';
 import { TableBodyContainer } from '../../components/atoms/table/TableBodyContainer';
 import { TableActions } from '../../components/molecules/table/TableActions';

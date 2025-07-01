@@ -28,7 +28,7 @@ public class AuthController : ControllerBase
         _jwtSettings = jwtSettings.Value;
     }
 
-/* 
+
     [HttpPost("createNewUser")]
     public async Task<ActionResult<UserDto?>> CreateNewUser([FromBody] EmailDto emailDto)
     {
@@ -84,7 +84,7 @@ public class AuthController : ControllerBase
             return StatusCode(500, new { Message = "Ocurrió un error inesperado al crear el usuario.", Details = ex.Message });
         }
     }
- */
+
     [HttpPost("login")]
     public async Task<ActionResult<UserDto?>> Login([FromBody] TokenDto tokenDto)
     {
