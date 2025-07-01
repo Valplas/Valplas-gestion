@@ -4,9 +4,9 @@ import { UserDto } from '../../types/auth.type';
 import usePost from '../../hooks/usePost';
 import Cookies from 'js-cookie';
 import dayjs from 'dayjs';
+import { BACKEND_URL } from '../../envs';
 
-//@ts-ignore
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
