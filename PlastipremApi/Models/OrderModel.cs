@@ -60,6 +60,8 @@ namespace Valplas.Models
 
         // Peso total en kilos
         public decimal Weight { get; set; }
+        public bool IsDeleted { get; set; } = false;
+
 
         public ICollection<OrderProductModel> OrderProducts { get; set; } = new List<OrderProductModel>();
     }

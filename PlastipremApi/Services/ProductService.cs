@@ -35,7 +35,9 @@ public class ProductModelService
     {
         try
         {
-            var query = _context.Products.AsQueryable();
+            var query = _context.Products
+    .Where(p => !p.IsDeleted)
+    .AsQueryable();
 
             if (!string.IsNullOrEmpty(search))
             {
@@ -152,8 +154,10 @@ public class ProductModelService
                 throw new KeyNotFoundException($"Producto con ID {productId} no encontrado.");
             }
 
-            _context.Products.Remove(product);
+            product.IsDeleted = true;
+            _context.Products.Update(product);
             await _context.SaveChangesAsync();
+
             return true;
         }
         catch (KeyNotFoundException ex)

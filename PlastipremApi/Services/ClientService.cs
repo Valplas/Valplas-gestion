@@ -16,6 +16,7 @@ public class ClientService
     {
         return await _context
         .Clients.AsNoTracking()
+        .Where(c => !c.IsDeleted)
         .OrderBy(c => c.ClientName ?? string.Empty)
         .ThenBy(c => c.ClientDate ?? DateTime.MinValue) // Ordena por fecha de creación si hay empate
         .ToListAsync();
@@ -77,8 +78,10 @@ public class ClientService
             return false;
         }
 
-        _context.Clients.Remove(client);
+        client.IsDeleted = true;
+        _context.Clients.Update(client);
         await _context.SaveChangesAsync();
+
         return true;
     }
 }
