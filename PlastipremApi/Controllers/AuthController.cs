@@ -28,8 +28,8 @@ public class AuthController : ControllerBase
         _jwtSettings = jwtSettings.Value;
     }
 
-/* 
-    [HttpPost("createNewUser")]
+
+/*     [HttpPost("createNewUser")]
     public async Task<ActionResult<UserDto?>> CreateNewUser([FromBody] EmailDto emailDto)
     {
 

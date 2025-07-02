@@ -109,6 +109,7 @@ public class ProductModelService
                 throw new KeyNotFoundException($"Producto con ID {productId} no encontrado.");
             }
 
+            existingProductModel.Nmae = updatedProductModel.Name;
             existingProductModel.Description = updatedProductModel.Description;
             existingProductModel.Manufacturer = updatedProductModel.Manufacturer;
             existingProductModel.WeightKg = updatedProductModel.WeightKg;
