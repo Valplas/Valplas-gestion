@@ -57,14 +57,11 @@ public class OrdersController : ControllerBase
     public async Task<IActionResult> UpdateOrder(Guid id, [FromBody] NewOrderDTO updatedOrder)
     {
     
-        Console.WriteLine("------------------------------------------------");
-    Console.WriteLine($"ID de la URL: {id}");
+
 
     // Serializar el body a JSON para verlo completo
     var json = JsonSerializer.Serialize(updatedOrder, new JsonSerializerOptions { WriteIndented = true });
-    Console.WriteLine("Cuerpo (updatedOrder):");
-    Console.WriteLine(json);
-    Console.WriteLine("------------------------------------------------");
+
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);

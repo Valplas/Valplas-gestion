@@ -54,6 +54,9 @@ namespace Valplas.Models
 
         public bool IsDeleted { get; set; } = false;
 
+        // Precio del producto en el momento de la orden
+        public decimal CostPrice { get; set; }
+
         public ICollection<OrderProductModel> OrderProducts { get; set; } = new List<OrderProductModel>();
 
     }
