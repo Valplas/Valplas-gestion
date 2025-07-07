@@ -45,9 +45,7 @@ export const OrderForm = ({
   const { data: priceList } = useFetch<PriceListModel[]>(
     `${BACKEND_URL}/listprices`,
   );
-  const [selectedPriceList, setSelectedPriceList] = useState<
-    PriceListModel | undefined
-  >(undefined);
+
   const [client, setClient] = useState<ClientModel | undefined>(order?.client);
   const [selectedProduct, setSelectedProduct] = useState<
     OrderProductsEntity | undefined
@@ -78,17 +76,13 @@ export const OrderForm = ({
     }
   };
 
-  
   const selectedFormProduct = watch('product'); // este es el valor real del formulario
   const selectedFormPriceList = watch('listPrice');
+
   const handleSelectProduct = (prod: OrderProductsEntity) => {
     setSelectedProduct(prod);
     setValue('product', prod.product);
     setValue('quantity', prod.quantity);
-  };
-
-  const handelSelectPriceList = (pl: PriceListModel) => {
-    setSelectedPriceList(pl);
   };
 
   const handleDelete = (id: string) => {
@@ -138,10 +132,11 @@ export const OrderForm = ({
       setValue('product', selectedProduct.product);
     }
   }, [selectedProduct?.product.productID]);
+
   useEffect(() => {
     setClient(order?.client);
   }, [order?.clientID]);
-
+  console.log(orderProducts)
   const orderAmount = useMemo(() => {
     return orderProducts.reduce(
       (total, product) => total + product.subtotal,
@@ -151,17 +146,24 @@ export const OrderForm = ({
 
   useEffect(() => {
     const quantity = watch('quantity');
-    const listPrice = watch('listPrice');
-    const product = watch('product');
-    if (quantity && listPrice && product) {
-      setValue(
-        'subtotal',
-        product.costPrice * quantity * (1 + listPrice.margin / 100),
-      );
+    const unitaryPrice = watch('unitaryPrice');
+    if (unitaryPrice) {
+      setValue('subtotal', unitaryPrice * quantity);
     } else {
       setValue('subtotal', 0);
     }
-  }, [watch('quantity')]);
+  }, [watch('quantity'), watch('unitaryPrice')]);
+
+  useEffect(() => {
+    if (selectedFormPriceList && selectedFormProduct) {
+      setValue(
+        'unitaryPrice',
+        selectedFormProduct.costPrice *
+          (1 + selectedFormPriceList.margin / 100),
+      );
+    }
+  }, [selectedFormPriceList, selectedFormProduct]);
+
   return (
     <>
       <div className="border-b border-stroke py-4 px-7 dark:border-strokedark">
@@ -180,19 +182,6 @@ export const OrderForm = ({
         )}
         <form onSubmit={handleSubmit(submitOrderProducts)}>
           <ItemFormContainer>
-            {/* <FormItem
-          errors={errors}
-          label="Producto"
-          name="product"
-          options={
-            products?.map((p) => ({
-              value: { ...p },
-              label: p.name,
-            })) || []
-          }
-          register={register}
-        /> */}
-
             <div className="w-full sm:w-1/2">
               <label
                 className="mb-3 block text-sm font-medium text-black dark:text-white"
@@ -215,9 +204,7 @@ export const OrderForm = ({
                     );
                     if (selectedProduct) {
                       setValue('product', selectedProduct);
-                      setValue('quantity', 0);
-                      setValue('unitaryPrice', 0);
-                    } // Establece el valor en el formulario
+                    }
                   }}
                 >
                   <option value={selectedProduct?.product.productID}>
@@ -269,19 +256,15 @@ export const OrderForm = ({
                 id="product"
                 placeholder="Seleccione una lista"
                 onChange={(e) => {
-                  const selectedPriceList = products?.find(
-                    (prod) => prod.productID === e.target.value,
+                  const selectedPriceList = priceList?.find(
+                    (prod) => prod.listPriceID === e.target.value,
                   );
                   if (selectedPriceList) {
-                    setValue('listPrice', );
-                    setValue('quantity', 0);
-                    setValue('unitaryPrice', 0);
+                    setValue('listPrice', selectedPriceList);
                   } // Establece el valor en el formulario
                 }}
               >
-                <option value={selectedPriceList?.listPriceID}>
-                  Seleccione una lista
-                </option>
+                <option value={''}>Seleccione una lista</option>
 
                 {priceList?.map((prod) => (
                   <option key={prod.listPriceID} value={prod.listPriceID}>
@@ -339,6 +322,9 @@ export const OrderForm = ({
                   Cantidad
                 </th>
                 <th scope="col" className="px-6 py-3">
+                  Lista
+                </th>
+                <th scope="col" className="px-6 py-3">
                   Precio Unitario
                 </th>
                 <th scope="col" className="px-6 py-3">
@@ -361,6 +347,7 @@ export const OrderForm = ({
                 >
                   <td className="px-6 py-4">{prod.product.description}</td>
                   <td className="px-6 py-4">{prod.quantity}</td>
+                  <td className="px-6 py-4">{prod.listPrice.name}</td>
                   <td className="px-6 py-4">${prod.unitaryPrice.toFixed(2)}</td>
                   <td className="px-6 py-4">${prod.subtotal.toFixed(2)}</td>
                   <td
@@ -396,6 +383,11 @@ export const OrderForm = ({
                   productID: op.product.productID,
                   quantity: op.quantity,
                   unitaryPrice: op.unitaryPrice,
+                  costPrice: op.costPrice,
+                  listPriceID: op.listPrice.listPriceID,
+                  subtotal: op.subtotal,
+                  revenue:
+                    ((op.costPrice * op.listPrice.margin) / 100) * op.quantity,
                 };
               }), // Productos asociados a la orden
             });
