@@ -14,7 +14,7 @@ import Loader from '../../common/Loader/Loader';
 import { Search } from '../../components/atoms/inputs/Search';
 import { Button } from '../../components/atoms/button/Button';
 
-const headers = ['Nombre', 'Descripcion', 'Stock', 'Código', 'Marca', ' '];
+const headers = ['Nombre', 'Descripcion', 'Stock','Codigo', 'Costo', 'Marca', ' '];
 
 export const Products = () => {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(
@@ -97,7 +97,8 @@ export const Products = () => {
                   Nombre: product?.name,
                   Descripcion: product.description,
                   Stock: product?.quantity ?? 0,
-                  Código: product.code,
+                  Codigo: product.code,
+                  Costo: `$ ${product.costPrice}`,
                   Marca: product?.manufacturer ?? '',
                 }}
                 actions={

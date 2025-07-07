@@ -1,4 +1,5 @@
 import { ClientModel } from './clients.type';
+import { PriceListModel } from './priceList.type';
 import { ProductModel } from './product.type';
 
 export enum OrderStatusType
@@ -46,6 +47,10 @@ export interface OrderProductsEntity {
   quantity: number;
   unitaryPrice: number;
   subtotal: number;
+  listPrice: PriceListModel;
+  revenue: number;
+  costPrice: number;
+
 }
 export interface NewOrderDTO {
     clientID: string; // ID del cliente que realiza la orden

@@ -16,6 +16,7 @@ import useFetch from '../../../hooks/useFetch';
 import { BACKEND_URL } from '../../../envs';
 import { ModalContainer } from '../../atoms/modal/ModalContainer';
 import { Search } from '../../atoms/inputs/Search';
+import { PriceListModel } from '../../../types/priceList.type';
 
 interface Props {
   methods: UseFormReturn<OrderProductsEntity>;
@@ -41,7 +42,12 @@ export const OrderForm = ({
   const { data: products } = useFetch<ProductModel[]>(
     `${BACKEND_URL}/products`,
   );
-
+  const { data: priceList } = useFetch<PriceListModel[]>(
+    `${BACKEND_URL}/listprices`,
+  );
+  const [selectedPriceList, setSelectedPriceList] = useState<
+    PriceListModel | undefined
+  >(undefined);
   const [client, setClient] = useState<ClientModel | undefined>(order?.client);
   const [selectedProduct, setSelectedProduct] = useState<
     OrderProductsEntity | undefined
@@ -71,13 +77,18 @@ export const OrderForm = ({
       setLoadedRows((prev) => prev + 40);
     }
   };
-  const selectedFormProduct = watch('product'); // este es el valor real del formulario
 
+  
+  const selectedFormProduct = watch('product'); // este es el valor real del formulario
+  const selectedFormPriceList = watch('listPrice');
   const handleSelectProduct = (prod: OrderProductsEntity) => {
     setSelectedProduct(prod);
     setValue('product', prod.product);
     setValue('quantity', prod.quantity);
-    setValue('unitaryPrice', prod.unitaryPrice);
+  };
+
+  const handelSelectPriceList = (pl: PriceListModel) => {
+    setSelectedPriceList(pl);
   };
 
   const handleDelete = (id: string) => {
@@ -137,15 +148,20 @@ export const OrderForm = ({
       0,
     );
   }, [orderProducts.length]);
+
   useEffect(() => {
-    const price = watch('unitaryPrice');
     const quantity = watch('quantity');
-    if (price && quantity) {
-      setValue('subtotal', price * quantity);
+    const listPrice = watch('listPrice');
+    const product = watch('product');
+    if (quantity && listPrice && product) {
+      setValue(
+        'subtotal',
+        product.costPrice * quantity * (1 + listPrice.margin / 100),
+      );
     } else {
       setValue('subtotal', 0);
     }
-  }, [watch('unitaryPrice'), watch('quantity')]);
+  }, [watch('quantity')]);
   return (
     <>
       <div className="border-b border-stroke py-4 px-7 dark:border-strokedark">
@@ -159,7 +175,7 @@ export const OrderForm = ({
             {`Cliente: ${client.clientName} - ${client.clientCUIT} - ${client.clientAddress}`}
           </div>
         )}
-        {clients?.length !==1&& (
+        {clients?.length !== 1 && (
           <Button label="Cliente" onClick={() => setOpen(true)} />
         )}
         <form onSubmit={handleSubmit(submitOrderProducts)}>
@@ -227,7 +243,7 @@ export const OrderForm = ({
             <FormItem
               errors={errors}
               label={`Cantidad - Stock disponible: ${
-                watch('product')?.quantity ?? 'No disponible'
+                watch('product')?.quantity ?? 'N/D'
               }`}
               name="quantity"
               type="number"
@@ -237,6 +253,44 @@ export const OrderForm = ({
           </ItemFormContainer>
 
           <ItemFormContainer>
+            <div className="w-full sm:w-1/2">
+              <label
+                className="mb-3 block text-sm font-medium text-black dark:text-white"
+                htmlFor={'product'}
+              >
+                Lista de precios
+              </label>
+              <select
+                value={selectedFormPriceList?.listPriceID ?? ''} // <-- importante
+                className={`w-full rounded border py-3 px-4.5 border-stroke bg-gray 
+                        text-black focus:border-primary focus-visible:outline-none dark:border-strokedark dark:bg-meta-4 dark:text-white dark:focus:border-primary ${
+                          errors ? 'border-danger' : ''
+                        }`}
+                id="product"
+                placeholder="Seleccione una lista"
+                onChange={(e) => {
+                  const selectedPriceList = products?.find(
+                    (prod) => prod.productID === e.target.value,
+                  );
+                  if (selectedPriceList) {
+                    setValue('listPrice', );
+                    setValue('quantity', 0);
+                    setValue('unitaryPrice', 0);
+                  } // Establece el valor en el formulario
+                }}
+              >
+                <option value={selectedPriceList?.listPriceID}>
+                  Seleccione una lista
+                </option>
+
+                {priceList?.map((prod) => (
+                  <option key={prod.listPriceID} value={prod.listPriceID}>
+                    {prod.name} - {prod.margin} %
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <FormItem
               errors={errors}
               label="Precio Unitario"
@@ -244,8 +298,18 @@ export const OrderForm = ({
               type="number"
               placeholder="Precio por unidad"
               register={register}
+              disabled={true}
             />
-
+          </ItemFormContainer>
+          <ItemFormContainer>
+            <FormItem
+              errors={errors}
+              label="Código de producto"
+              name="code"
+              type="text"
+              placeholder="Código único de producto"
+              register={register}
+            />
             <FormItem
               errors={errors}
               label="Subtotal"
@@ -256,15 +320,6 @@ export const OrderForm = ({
               disabled={true}
             />
           </ItemFormContainer>
-
-          <FormItem
-            errors={errors}
-            label="Código de producto"
-            name="code"
-            type="text"
-            placeholder="Código único de producto"
-            register={register}
-          />
 
           <div className="flex justify-end gap-4.5">
             <Button type="reset" label="Cancelar" />
