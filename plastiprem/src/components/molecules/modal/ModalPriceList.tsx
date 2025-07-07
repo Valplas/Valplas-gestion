@@ -60,7 +60,7 @@ const ModalPriceList = ({ setOpen, open }: ModalPriceListProps) => {
               register={register}
             />
           </ItemFormContainer>
-          <div className="flex gap-2">
+          <div className="flex gap-2 justify-center">
             <Button label="Crear" type="submit" />
             <Button label="Cancelar" onClick={() => setOpen(false)} />
           </div>
