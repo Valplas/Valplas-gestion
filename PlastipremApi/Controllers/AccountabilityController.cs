@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 using Valplas.Models;
 using Valplas.Services;
 using Valplas.DTO;
@@ -23,16 +24,23 @@ public class AccountabilityController : ControllerBase
 
     // GET: api/Accountability
     [HttpGet]
-    public async Task<ActionResult> GetAll([FromQuery] string date)
+    public async Task<ActionResult> GetAll([FromQuery] string? date)
     {
-        if (!DateTime.TryParseExact(date, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out var parsedDate))
-        {
-            return BadRequest("Formato de fecha inválido. Usar dd/MM/yyyy.");
-        }
+        DateTime parsedDate;
 
-        var result = await _service.GetDailySalesByListPrice(parsedDate);
+        if (string.IsNullOrWhiteSpace(date))
+        {
+            parsedDate = DateTime.UtcNow.Date; // Por defecto: hoy
+        }
+       else if (!DateTime.TryParseExact(date, "dd/MM/yyyy", null, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out parsedDate))
+{
+    return BadRequest("Formato de fecha inválido. Usar dd/MM/yyyy.");
+}
+
+        var result = await _service.GetDailySalesGroupedByProduct(parsedDate);
         return Ok(result);
     }
+
 
     // GET: api/Accountability/{id}
     // [HttpGet("{id}")]
