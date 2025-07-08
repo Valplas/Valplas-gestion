@@ -12,7 +12,7 @@ public class ValplasContext : DbContext
 
     public DbSet<OrderModel> Orders { get; set; }
     public DbSet<OrderProductModel> OrderProducts { get; set; }
-
+    public DbSet<ListPriceModel> ListPrices { get; set; }
 
     // Constructor
     public ValplasContext(DbContextOptions<ValplasContext> options)
@@ -24,6 +24,7 @@ public class ValplasContext : DbContext
         Products = Set<ProductModel>();
         Orders = Set<OrderModel>();
         OrderProducts = Set<OrderProductModel>();
+        ListPrices = Set<ListPriceModel>();
     }
 
     // Configuración del modelo
@@ -64,13 +65,17 @@ public class ValplasContext : DbContext
 
 
             entity.HasOne(op => op.Product) // Relación con ProductModel
-                  .WithMany(p=>p.OrderProducts)
+                  .WithMany(p => p.OrderProducts)
                   .HasForeignKey(op => op.ProductID)
                     .OnDelete(DeleteBehavior.Restrict); // No permite eliminar un producto si está en uso
-            
-            entity.HasOne(op=>op.Order)
-                    .WithMany(o=>o.OrderProducts)
-                    .HasForeignKey(op=>op.OrderID);
+
+            entity.HasOne(op => op.Order)
+                    .WithMany(o => o.OrderProducts)
+                    .HasForeignKey(op => op.OrderID);
+
+            entity.HasOne(op => op.ListPrice)
+                .WithMany(lp => lp.OrderProducts)
+                .HasForeignKey(op => op.ListPriceID);
         });
 
         modelBuilder.Entity<ProductModel>(entity =>
@@ -78,8 +83,14 @@ public class ValplasContext : DbContext
             entity.HasKey(p => p.ProductID); // Asegúrate de que ProductID existe en el modelo
             entity.Property(p => p.Description);
             entity.HasMany(p => p.OrderProducts) // Relación muchos a muchos a través de OrderProductModel
-                  .WithOne(op=>op.Product)
+                  .WithOne(op => op.Product)
                   .HasForeignKey(op => op.ProductID);
+        });
+
+        modelBuilder.Entity<ListPriceModel>(e =>
+        {
+            e.HasKey(p => p.ListPriceID);
+            e.Property(p => p.Name);
         });
     }
 }

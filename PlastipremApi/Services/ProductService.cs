@@ -121,6 +121,7 @@ public class ProductModelService
             existingProductModel.Container = updatedProductModel.Container;
             existingProductModel.Business = updatedProductModel.Business;
             existingProductModel.Quantity = updatedProductModel.Quantity;
+            existingProductModel.CostPrice = updatedProductModel.CostPrice;
 
             _context.Products.Update(existingProductModel);
             await _context.SaveChangesAsync();

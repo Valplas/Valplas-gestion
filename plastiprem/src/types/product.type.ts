@@ -20,6 +20,7 @@ export interface ProductModel {
     container: boolean; // Valor por defecto: false
     productIdRelated?: string | null; // Guid nullable
     quantity?: number | null; // Valor por defecto: 0
+    costPrice: number
   }
 
  export const businessOptions = [

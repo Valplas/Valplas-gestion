@@ -53,31 +53,38 @@ public class OrdersController : ControllerBase
     }
 
     // PUT: api/Orders/{id}
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateOrder(Guid id, [FromBody] NewOrderDTO updatedOrder)
+[HttpPut("{id}")]
+public async Task<IActionResult> UpdateOrder(Guid id, [FromBody] NewOrderDTO updatedOrder)
+{
+    try
     {
-    
-        Console.WriteLine("------------------------------------------------");
-    Console.WriteLine($"ID de la URL: {id}");
+        // Para debugging: ver el contenido del body
+        var json = JsonSerializer.Serialize(updatedOrder, new JsonSerializerOptions { WriteIndented = true });
+        Console.WriteLine($"[PUT /orders/{id}] Payload recibido:\n{json}");
 
-    // Serializar el body a JSON para verlo completo
-    var json = JsonSerializer.Serialize(updatedOrder, new JsonSerializerOptions { WriteIndented = true });
-    Console.WriteLine("Cuerpo (updatedOrder):");
-    Console.WriteLine(json);
-    Console.WriteLine("------------------------------------------------");
         if (!ModelState.IsValid)
         {
+            Console.WriteLine("Modelo inválido");
             return BadRequest(ModelState);
         }
+
         var result = await _orderService.UpdateAsync(id, updatedOrder);
 
         if (!result)
         {
+            Console.WriteLine($"Orden con ID {id} no encontrada.");
             return NotFound();
         }
 
         return NoContent();
     }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ [ERROR PUT /orders/{id}] {ex.Message}");
+        return StatusCode(500, "Error interno en la actualización de la orden.");
+    }
+}
+
 
     // DELETE: api/Orders/{id}
     [HttpDelete("{id}")]

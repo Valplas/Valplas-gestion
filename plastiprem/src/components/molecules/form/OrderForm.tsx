@@ -16,6 +16,7 @@ import useFetch from '../../../hooks/useFetch';
 import { BACKEND_URL } from '../../../envs';
 import { ModalContainer } from '../../atoms/modal/ModalContainer';
 import { Search } from '../../atoms/inputs/Search';
+import { PriceListModel } from '../../../types/priceList.type';
 
 interface Props {
   methods: UseFormReturn<OrderProductsEntity>;
@@ -40,6 +41,9 @@ export const OrderForm = ({
   const [search, setSearch] = useState<string>('');
   const { data: products } = useFetch<ProductModel[]>(
     `${BACKEND_URL}/products`,
+  );
+  const { data: priceList } = useFetch<PriceListModel[]>(
+    `${BACKEND_URL}/listprices`,
   );
 
   const [client, setClient] = useState<ClientModel | undefined>(order?.client);
@@ -71,13 +75,14 @@ export const OrderForm = ({
       setLoadedRows((prev) => prev + 40);
     }
   };
+
   const selectedFormProduct = watch('product'); // este es el valor real del formulario
+  const selectedFormPriceList = watch('listPrice');
 
   const handleSelectProduct = (prod: OrderProductsEntity) => {
     setSelectedProduct(prod);
     setValue('product', prod.product);
     setValue('quantity', prod.quantity);
-    setValue('unitaryPrice', prod.unitaryPrice);
   };
 
   const handleDelete = (id: string) => {
@@ -127,25 +132,38 @@ export const OrderForm = ({
       setValue('product', selectedProduct.product);
     }
   }, [selectedProduct?.product.productID]);
+
   useEffect(() => {
     setClient(order?.client);
   }, [order?.clientID]);
-
+  console.log(orderProducts)
   const orderAmount = useMemo(() => {
     return orderProducts.reduce(
       (total, product) => total + product.subtotal,
       0,
     );
   }, [orderProducts.length]);
+
   useEffect(() => {
-    const price = watch('unitaryPrice');
     const quantity = watch('quantity');
-    if (price && quantity) {
-      setValue('subtotal', price * quantity);
+    const unitaryPrice = watch('unitaryPrice');
+    if (unitaryPrice) {
+      setValue('subtotal', unitaryPrice * quantity);
     } else {
       setValue('subtotal', 0);
     }
-  }, [watch('unitaryPrice'), watch('quantity')]);
+  }, [watch('quantity'), watch('unitaryPrice')]);
+
+  useEffect(() => {
+    if (selectedFormPriceList && selectedFormProduct) {
+      setValue(
+        'unitaryPrice',
+        selectedFormProduct.costPrice *
+          (1 + selectedFormPriceList.margin / 100),
+      );
+    }
+  }, [selectedFormPriceList, selectedFormProduct]);
+
   return (
     <>
       <div className="border-b border-stroke py-4 px-7 dark:border-strokedark">
@@ -159,24 +177,11 @@ export const OrderForm = ({
             {`Cliente: ${client.clientName} - ${client.clientCUIT} - ${client.clientAddress}`}
           </div>
         )}
-        {clients?.length !==1&& (
+        {clients?.length !== 1 && (
           <Button label="Cliente" onClick={() => setOpen(true)} />
         )}
         <form onSubmit={handleSubmit(submitOrderProducts)}>
           <ItemFormContainer>
-            {/* <FormItem
-          errors={errors}
-          label="Producto"
-          name="product"
-          options={
-            products?.map((p) => ({
-              value: { ...p },
-              label: p.name,
-            })) || []
-          }
-          register={register}
-        /> */}
-
             <div className="w-full sm:w-1/2">
               <label
                 className="mb-3 block text-sm font-medium text-black dark:text-white"
@@ -199,9 +204,7 @@ export const OrderForm = ({
                     );
                     if (selectedProduct) {
                       setValue('product', selectedProduct);
-                      setValue('quantity', 0);
-                      setValue('unitaryPrice', 0);
-                    } // Establece el valor en el formulario
+                    }
                   }}
                 >
                   <option value={selectedProduct?.product.productID}>
@@ -227,7 +230,7 @@ export const OrderForm = ({
             <FormItem
               errors={errors}
               label={`Cantidad - Stock disponible: ${
-                watch('product')?.quantity ?? 'No disponible'
+                watch('product')?.quantity ?? 'N/D'
               }`}
               name="quantity"
               type="number"
@@ -237,6 +240,40 @@ export const OrderForm = ({
           </ItemFormContainer>
 
           <ItemFormContainer>
+            <div className="w-full sm:w-1/2">
+              <label
+                className="mb-3 block text-sm font-medium text-black dark:text-white"
+                htmlFor={'product'}
+              >
+                Lista de precios
+              </label>
+              <select
+                value={selectedFormPriceList?.listPriceID ?? ''} // <-- importante
+                className={`w-full rounded border py-3 px-4.5 border-stroke bg-gray 
+                        text-black focus:border-primary focus-visible:outline-none dark:border-strokedark dark:bg-meta-4 dark:text-white dark:focus:border-primary ${
+                          errors ? 'border-danger' : ''
+                        }`}
+                id="product"
+                placeholder="Seleccione una lista"
+                onChange={(e) => {
+                  const selectedPriceList = priceList?.find(
+                    (prod) => prod.listPriceID === e.target.value,
+                  );
+                  if (selectedPriceList) {
+                    setValue('listPrice', selectedPriceList);
+                  } // Establece el valor en el formulario
+                }}
+              >
+                <option value={''}>Seleccione una lista</option>
+
+                {priceList?.map((prod) => (
+                  <option key={prod.listPriceID} value={prod.listPriceID}>
+                    {prod.name} - {prod.margin} %
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <FormItem
               errors={errors}
               label="Precio Unitario"
@@ -244,8 +281,18 @@ export const OrderForm = ({
               type="number"
               placeholder="Precio por unidad"
               register={register}
+              disabled={true}
             />
-
+          </ItemFormContainer>
+          <ItemFormContainer>
+            <FormItem
+              errors={errors}
+              label="Código de producto"
+              name="code"
+              type="text"
+              placeholder="Código único de producto"
+              register={register}
+            />
             <FormItem
               errors={errors}
               label="Subtotal"
@@ -256,15 +303,6 @@ export const OrderForm = ({
               disabled={true}
             />
           </ItemFormContainer>
-
-          <FormItem
-            errors={errors}
-            label="Código de producto"
-            name="code"
-            type="text"
-            placeholder="Código único de producto"
-            register={register}
-          />
 
           <div className="flex justify-end gap-4.5">
             <Button type="reset" label="Cancelar" />
@@ -282,6 +320,9 @@ export const OrderForm = ({
                 </th>
                 <th scope="col" className="px-6 py-3">
                   Cantidad
+                </th>
+                <th scope="col" className="px-6 py-3">
+                  Lista
                 </th>
                 <th scope="col" className="px-6 py-3">
                   Precio Unitario
@@ -306,6 +347,7 @@ export const OrderForm = ({
                 >
                   <td className="px-6 py-4">{prod.product.description}</td>
                   <td className="px-6 py-4">{prod.quantity}</td>
+                  <td className="px-6 py-4">{prod.listPrice.name}</td>
                   <td className="px-6 py-4">${prod.unitaryPrice.toFixed(2)}</td>
                   <td className="px-6 py-4">${prod.subtotal.toFixed(2)}</td>
                   <td
@@ -341,6 +383,11 @@ export const OrderForm = ({
                   productID: op.product.productID,
                   quantity: op.quantity,
                   unitaryPrice: op.unitaryPrice,
+                  costPrice: op.costPrice,
+                  listPriceID: op.listPrice.listPriceID,
+                  subtotal: op.subtotal,
+                  revenue:
+                    ((op.costPrice * op.listPrice.margin) / 100) * op.quantity,
                 };
               }), // Productos asociados a la orden
             });

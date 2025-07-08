@@ -12,8 +12,9 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { BACKEND_URL } from '../../envs';
 import Loader from '../../common/Loader/Loader';
 import { Search } from '../../components/atoms/inputs/Search';
+import { Button } from '../../components/atoms/button/Button';
 
-const headers = ['Nombre', 'Descripcion', 'Stock', 'Código', 'Marca', ' '];
+const headers = ['Nombre', 'Descripcion', 'Stock','Codigo', 'Costo', 'Marca', ' '];
 
 export const Products = () => {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(
@@ -25,27 +26,29 @@ export const Products = () => {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const { showSnackbar } = useSnackbar();
-
+  const [modalListPriceVisible, setModalListPriceVisible] =
+    useState<boolean>(false);
   const { data, loading, error } = useFetch<ProductModel[]>(
     `${BACKEND_URL}/products`,
     [refresh],
   );
 
-useEffect(() => {
-  if (!data) return;
+  useEffect(() => {
+    if (!data) return;
 
-  const filteredProducts = value
-    ? data.filter((prod) =>
-        [prod.name, prod.description]
-          .filter(Boolean)
-          .some((field) =>
-            (field as string).toLowerCase().includes(value.toLowerCase())
-          )
-      )
-    : data;
+    const filteredProducts = value
+      ? data.filter((prod) =>
+          [prod.name, prod.description]
+            .filter(Boolean)
+            .some((field) =>
+              (field as string).toLowerCase().includes(value.toLowerCase()),
+            ),
+        )
+      : data;
 
-  setVisibleProducts(filteredProducts);
-}, [data, value]);
+    setVisibleProducts(filteredProducts);
+  }, [data, value]);
+
 
   useEffect(() => {
     if (error) {
@@ -67,12 +70,15 @@ useEffect(() => {
               value={value}
             />
           </div>
-          <Link
-            to="/products/new"
-            className="inline-flex items-center  justify-center gap-2.5 rounded-full bg-meta-3 py-2 px-4 text-center font-bold text-sm sm:text-lg text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
-          >
-            Nuevo producto
-          </Link>
+          <div className="flex gap-3">
+            <Button label="Nueva lista de precios" onClick={() => {setModalListPriceVisible(true)}} />
+            <Link
+              to="/products/new"
+              className="inline-flex items-center  justify-center gap-2.5 rounded-full bg-meta-3 py-2 px-4 text-center font-bold text-sm sm:text-lg text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
+            >
+              Nuevo producto
+            </Link>
+          </div>
         </div>
         <TableBodyContainer>
           <TableHeaders titles={headers} columns={headers.length} />
@@ -91,7 +97,8 @@ useEffect(() => {
                   Nombre: product?.name,
                   Descripcion: product.description,
                   Stock: product?.quantity ?? 0,
-                  Código: product.code,
+                  Codigo: product.code,
+                  Costo: `$ ${product.costPrice}`,
                   Marca: product?.manufacturer ?? '',
                 }}
                 actions={
@@ -129,6 +136,12 @@ useEffect(() => {
               onCancel={() => setIsEditOpen(false)}
             />
           )}
+
+          {modalListPriceVisible && (
+            <ModalPriceList 
+              open={modalListPriceVisible}
+            setOpen={setModalListPriceVisible} />
+          )}
         </Suspense>
       </PageContainer>
     </>
@@ -140,4 +153,8 @@ const DeleteProductDialog = lazy(
 );
 const EditProductDialog = lazy(
   () => import('../../components/molecules/modal/EditProductDialog'),
+);
+
+const ModalPriceList = lazy(
+  () => import('../../components/molecules/modal/ModalPriceList'),
 );

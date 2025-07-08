@@ -43,7 +43,11 @@ namespace Valplas.Services
          {
              throw new KeyNotFoundException($"El producto con ID {op.ProductID} no existe.");
          }
-
+         var listPrice = _context.ListPrices.FirstOrDefault(lp => lp.ListPriceID == op.ListPriceID);
+         if (product == null)
+         {
+             throw new KeyNotFoundException($"La lista de precio con ID {op.ListPriceID} no existe.");
+         }
          // Validar stock suficiente
          if (product.Quantity < op.Quantity)
          {
@@ -54,12 +58,21 @@ namespace Valplas.Services
          product.Quantity -= op.Quantity;
 
          totalWeight += (product.WeightKg ?? 0) * op.Quantity;
+         var unitaryPrice = product.CostPrice * (1 + listPrice.Margin / 100);
+         var subtotal = op.Quantity * unitaryPrice;
+         var revenue = product.CostPrice * (listPrice.Margin / 100) * op.Quantity;
+
+
          return new OrderProductModel
          {
              ProductID = product.ProductID,
              Quantity = op.Quantity,
-             UnitaryPrice = op.UnitaryPrice,
-             Subtotal = op.Quantity * op.UnitaryPrice,
+             UnitaryPrice = unitaryPrice,
+             Subtotal = subtotal,
+             ListPriceID = listPrice.ListPriceID,
+             Revenue = revenue,
+             CostPrice = product.CostPrice
+
          };
      })
      .ToList();
@@ -75,8 +88,8 @@ namespace Valplas.Services
                     Schedules = newOrder.Schedules,
                     Address = newOrder.Address,
                     GeoPointAddress = newOrder.GeoPointAddress,
-                    TotalAmount = newOrder.OrderProducts.Sum(op => op.Quantity * op.UnitaryPrice),
-                    Amount = newOrder.OrderProducts.Sum(op => op.Quantity * op.UnitaryPrice),
+                    TotalAmount = orderProducts.Sum(op => op.Quantity * op.UnitaryPrice),
+                    Amount = orderProducts.Sum(op => op.Quantity * op.UnitaryPrice),
                     Weight = totalWeight,
                     OrderProducts = orderProducts
                 };
@@ -108,8 +121,11 @@ namespace Valplas.Services
             return await _context.Orders
              .AsNoTracking() // Mejora el rendimiento y evita seguimiento innecesario
                 .Include(o => o.Client) // Incluir cliente relacionado
+
                 .Include(o => o.OrderProducts) // Incluir productos relacionados
                     .ThenInclude(op => op.Product) // Incluir detalles de cada producto
+                .Include(o => o.OrderProducts) // Incluir productos relacionados
+                    .ThenInclude(op => op.ListPrice) // Incluir detalles de cada producto
                 .OrderByDescending(o => o.OrderNumber)
                 .ToListAsync();
         }
@@ -120,6 +136,9 @@ namespace Valplas.Services
                 .Include(o => o.Client)
                 .Include(o => o.OrderProducts)
                     .ThenInclude(op => op.Product)
+
+                .Include(o => o.OrderProducts) // Incluir productos relacionados
+                    .ThenInclude(op => op.ListPrice) // Incluir detalles de cada producto
                 .FirstOrDefaultAsync(o => o.OrderID == id);
         }
 
@@ -134,84 +153,99 @@ namespace Valplas.Services
                 .ToListAsync();
         }
 
-public async Task<bool> UpdateAsync(Guid id, NewOrderDTO updatedOrder)
-{
-    using var transaction = await _context.Database.BeginTransactionAsync();
-
-    var existingOrder = await _context.Orders
-        .Include(o => o.OrderProducts)
-        .FirstOrDefaultAsync(o => o.OrderID == id);
-
-    if (existingOrder == null)
-        return false;
-
-    try
-    {
-        // 1. Revertir stock
-        foreach (var oldOP in existingOrder.OrderProducts)
+        public async Task<bool> UpdateAsync(Guid id, NewOrderDTO updatedOrder)
         {
-            var product = await _context.Products.FindAsync(oldOP.ProductID);
-            if (product != null)
-                product.Quantity += oldOP.Quantity;
-        }
+            using var transaction = await _context.Database.BeginTransactionAsync();
 
-        // 2. Validar nuevo stock
-        decimal totalWeight = 0;
-        foreach (var newOP in updatedOrder.OrderProducts)
-        {
-            var product = await _context.Products.FindAsync(newOP.ProductID);
-            if (product == null)
-                throw new KeyNotFoundException($"Producto con ID {newOP.ProductID} no existe.");
-
-            if (product.Quantity < newOP.Quantity)
-                throw new InvalidOperationException($"Stock insuficiente para el producto {product.Name}. Disponible: {product.Quantity}, requerido: {newOP.Quantity}");
-
-            product.Quantity -= newOP.Quantity;
-            totalWeight += (product.WeightKg ?? 0) * newOP.Quantity;
-        }
-
-        // 3. Actualizar campos principales
-        existingOrder.OrderedBy = updatedOrder.OrderedBy;
-        existingOrder.DeliveryDate = updatedOrder.DeliveryDate;
-        existingOrder.RealDeliveryDate = updatedOrder.RealDeliveryDate;
-        existingOrder.Schedules = updatedOrder.Schedules;
-        existingOrder.Address = updatedOrder.Address;
-        existingOrder.GeoPointAddress = updatedOrder.GeoPointAddress;
-        existingOrder.Amount = updatedOrder.OrderProducts.Sum(op => op.Quantity * op.UnitaryPrice);
-        existingOrder.TotalAmount = existingOrder.Amount;
-        existingOrder.Weight = totalWeight;
-
-        // 4. Eliminar y desvincular los productos anteriores
-        _context.OrderProducts.RemoveRange(existingOrder.OrderProducts);
-        await _context.SaveChangesAsync(); // obligatorio
-
-        existingOrder.OrderProducts.Clear(); // desvincular en memoria
-
-        // 5. Crear y agregar nuevos productos manualmente
-        foreach (var op in updatedOrder.OrderProducts)
-        {
-            _context.OrderProducts.Add(new OrderProductModel
+            try
             {
-                OrderID = existingOrder.OrderID,
-                ProductID = op.ProductID,
-                Quantity = op.Quantity,
-                UnitaryPrice = op.UnitaryPrice,
-                Subtotal = op.Quantity * op.UnitaryPrice
-            });
+                // 1. Obtener orden existente con productos
+                var existingOrder = await _context.Orders
+                    .Include(o => o.OrderProducts)
+                    .FirstOrDefaultAsync(o => o.OrderID == id);
+
+                if (existingOrder == null)
+                    return false;
+
+                // 2. Revertir stock de productos anteriores
+                foreach (var oldOP in existingOrder.OrderProducts)
+                {
+                    var product = await _context.Products.FindAsync(oldOP.ProductID);
+                    if (product != null)
+                        product.Quantity += oldOP.Quantity;
+                }
+
+                // 3. Eliminar productos anteriores
+                _context.OrderProducts.RemoveRange(existingOrder.OrderProducts);
+                await _context.SaveChangesAsync();
+                existingOrder.OrderProducts.Clear();
+
+                // 4. Validar cliente
+                var client = await _context.Clients.FindAsync(updatedOrder.ClientID);
+                if (client == null)
+                    throw new KeyNotFoundException("El cliente especificado no existe.");
+
+                // 5. Crear nuevos OrderProducts
+                decimal totalWeight = 0;
+
+                var newOrderProducts = updatedOrder.OrderProducts.Select(op =>
+                {
+                    var product = _context.Products.FirstOrDefault(p => p.ProductID == op.ProductID)
+                                  ?? throw new KeyNotFoundException($"El producto con ID {op.ProductID} no existe.");
+
+                    var listPrice = _context.ListPrices.FirstOrDefault(lp => lp.ListPriceID == op.ListPriceID)
+                                    ?? throw new KeyNotFoundException($"La lista de precio con ID {op.ListPriceID} no existe.");
+
+                    if (product.Quantity < op.Quantity)
+                        throw new InvalidOperationException($"Stock insuficiente para el producto {product.Name}. Disponible: {product.Quantity}, requerido: {op.Quantity}");
+
+                    product.Quantity -= op.Quantity;
+
+                    totalWeight += (product.WeightKg ?? 0) * op.Quantity;
+
+                    var unitaryPrice = product.CostPrice * (1 + listPrice.Margin / 100);
+
+                    return new OrderProductModel
+                    {
+                        OrderID = id,
+                        ProductID = product.ProductID,
+                        Quantity = op.Quantity,
+                        UnitaryPrice = unitaryPrice,
+                        Subtotal = op.Quantity * unitaryPrice,
+                        ListPriceID = listPrice.ListPriceID,
+                        Revenue = product.CostPrice * (listPrice.Margin / 100) * op.Quantity,
+                        CostPrice = product.CostPrice
+                    };
+                }).ToList();
+
+                // 6. Actualizar campos de la orden
+                existingOrder.ClientID = updatedOrder.ClientID;
+                existingOrder.Client = client;
+                existingOrder.OrderedBy = updatedOrder.OrderedBy;
+                existingOrder.DeliveryDate = updatedOrder.DeliveryDate.ToUniversalTime();
+                existingOrder.RealDeliveryDate = updatedOrder.RealDeliveryDate.ToUniversalTime();
+                existingOrder.Schedules = updatedOrder.Schedules;
+                existingOrder.Address = updatedOrder.Address;
+                existingOrder.GeoPointAddress = updatedOrder.GeoPointAddress;
+                existingOrder.TotalAmount = newOrderProducts.Sum(op => op.Subtotal);
+                existingOrder.Amount = existingOrder.TotalAmount;
+                existingOrder.Weight = totalWeight;
+                existingOrder.OrderProducts = newOrderProducts;
+
+                // 7. Guardar cambios
+                _context.Orders.Update(existingOrder);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                Console.WriteLine($"❌ [ERROR UpdateAsync] {ex.Message}");
+                throw;
+            }
         }
-
-        _context.Orders.Update(existingOrder);
-        await _context.SaveChangesAsync();
-        await transaction.CommitAsync();
-        return true;
-    }
-    catch
-    {
-        await transaction.RollbackAsync();
-        throw;
-    }
-}
-
 
         public async Task<bool> DeleteAsync(Guid orderId)
         {

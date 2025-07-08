@@ -34,7 +34,8 @@ export const ProductForm = ({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <FormItem
+      <ItemFormContainer>
+         <FormItem
         errors={errors}
         label="Negocio"
         name="business"
@@ -42,6 +43,16 @@ export const ProductForm = ({
         options={businessOptions}
         icon={<BsBuilding size={20} />}
       />
+        <FormItem
+          errors={errors}
+          label="Precio de costo"
+          name="costPrice"
+          placeholder="1234"
+          type="text"
+          register={register}
+        />
+      </ItemFormContainer>
+     
       <ItemFormContainer>
         <FormItem
           errors={errors}
