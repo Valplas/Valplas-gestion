@@ -16,7 +16,7 @@ export const ModalContainer = ({children, setOpen}:{children:ReactNode, setOpen:
             onClick={handleBackdropClick}
         >
             <div 
-                className="bg-graydark p-5 rounded-lg max-w-5xl w-full max-h-[80vh] overflow-y-auto shadow-lg"
+                className="bg-graydark p-5 rounded-lg max-w-5xl w-fit max-h-[80vh] overflow-y-auto shadow-lg"
                 onClick={handleModalClick}
             >
                 {children}

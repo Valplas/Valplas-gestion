@@ -10,18 +10,21 @@ namespace Valplas.Models
 
         public OrderModel Order { get; set; } = null!;
 
-        public  Guid ProductID { get; set; }
+        public Guid ProductID { get; set; }
 
-        public ProductModel Product {get; set; } = null!;
+        public ProductModel Product { get; set; } = null!;
 
         // Cantidad de producto
         public int Quantity { get; set; }
-
+      
+        public decimal Revenue { get; set; }
+        public decimal CostPrice { get; set; }
         // Precio del producto en el momento de la orden
         public decimal UnitaryPrice { get; set; }
-
-        // Subtotal (Cantidad x Precio)
         public decimal Subtotal { get; set; }
+        public ListPriceModel ListPrice { get; set; } = null!;
+
+        public Guid ListPriceID { get; set; }
     }
 
 }

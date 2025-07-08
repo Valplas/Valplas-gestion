@@ -25,7 +25,7 @@ namespace Valplas.DTO
     {
         public Guid ProductID { get; set; } // ID del producto
         public int Quantity { get; set; } // Cantidad del producto
-        public decimal UnitaryPrice { get; set; } // Precio unitario del producto
+        public Guid ListPriceID { get; set; }
 
     }
 }

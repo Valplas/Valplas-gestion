@@ -41,6 +41,8 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ProductModelService>();
 builder.Services.AddScoped<ClientService>();
 builder.Services.AddScoped<OrderService>();
+builder.Services.AddScoped<ListPriceService>();
+builder.Services.AddScoped<AccountabilityService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
