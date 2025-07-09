@@ -7,6 +7,8 @@ import useFetch from '../../hooks/useFetch';
 import { BACKEND_URL } from '../../envs';
 import { ProductWithSalesDto } from '../../types/accountability';
 import { SkeletonRow } from '../../components/atoms/skeleton/SkeletonRow';
+import { useMemo, useState } from 'react';
+import dayjs from 'dayjs';
 
 const headers = [
   'Producto',
@@ -17,21 +19,46 @@ const headers = [
 ];
 
 export const Accounting = () => {
-  const { data, loading, error } = useFetch<ProductWithSalesDto[]>(
-    `${BACKEND_URL}/accountability`,
+  const [date, setDate] = useState<string>(dayjs().format('DD-MM-YYYY'));
+
+  const { data, loading } = useFetch<ProductWithSalesDto[]>(
+    `${BACKEND_URL}/accountability${date ? `?date=${date}` : ''}`,
+    [date],
   );
 
-
-
+  const totalRevenue = useMemo(() => {
+    if (data) {
+      return data.reduce((prev: number, prod) => {
+        return (
+          prev +
+          prod.salesByListPrice.reduce((prev: number, lp) => {
+            return prev + lp.totalRevenue;
+          }, 0)
+        );
+      }, 0);
+    }
+  }, [loading]);
   return (
     <PageContainer>
       <div className="flex justify-between items-center ">
         <h4 className=" text-xl font-semibold text-black dark:text-white">
           Resumen ventas
         </h4>
+
+        <div className="flex gap-3">
+          <input
+            type="date"
+            onChange={(e) => {
+              setDate(dayjs(e.target.value).format('DD-MM-YYYY'));
+            }}
+          />
+          <h3>
+            Ganancia del dia {date}:<strong> ${totalRevenue}</strong>
+          </h3>
+        </div>
       </div>
       <TableBodyContainer>
-      <TableHeaders titles={headers} columns={headers.length} />
+        <TableHeaders titles={headers} columns={headers.length} />
         {loading ? (
           <div className="w-full">
             {[...Array(5)].map((_, index) => (
@@ -97,7 +124,6 @@ export const Accounting = () => {
             </>
           ))
         )}
- 
       </TableBodyContainer>
     </PageContainer>
   );
