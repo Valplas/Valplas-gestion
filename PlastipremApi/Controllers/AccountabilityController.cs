@@ -32,10 +32,10 @@ public class AccountabilityController : ControllerBase
         {
             parsedDate = DateTime.UtcNow.Date; // Por defecto: hoy
         }
-       else if (!DateTime.TryParseExact(date, "dd/MM/yyyy", null, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out parsedDate))
-{
-    return BadRequest("Formato de fecha inválido. Usar dd/MM/yyyy.");
-}
+        else if (!DateTime.TryParseExact(date, "dd-MM-yyyy", null, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out parsedDate))
+        {
+            return BadRequest("Formato de fecha inválido. Usar dd-MM-yyyy.");
+        }
 
         var result = await _service.GetDailySalesGroupedByProduct(parsedDate);
         return Ok(result);
