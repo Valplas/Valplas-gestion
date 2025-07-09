@@ -21,7 +21,7 @@ const headers = [
 export const Accounting = () => {
   const [date, setDate] = useState<string>(dayjs().format('DD-MM-YYYY'));
 
-  const { data, loading, error } = useFetch<ProductWithSalesDto[]>(
+  const { data, loading } = useFetch<ProductWithSalesDto[]>(
     `${BACKEND_URL}/accountability${date ? `?date=${date}` : ''}`,
     [date],
   );
