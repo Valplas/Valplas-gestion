@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Valplas.Data;
@@ -11,9 +12,11 @@ using Valplas.Data;
 namespace ValplasApi.Migrations
 {
     [DbContext(typeof(ValplasContext))]
-    partial class ValplasContextModelSnapshot : ModelSnapshot
+    [Migration("20250712220952_UpdateTypoGetCostPrice")]
+    partial class UpdateTypoGetCostPrice
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
