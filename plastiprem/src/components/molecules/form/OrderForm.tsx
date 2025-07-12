@@ -137,17 +137,17 @@ export const OrderForm = ({
     setClient(order?.client);
   }, [order?.clientID]);
   const orderAmount = useMemo(() => {
-    return orderProducts.reduce(
+    return parseFloat(orderProducts.reduce(
       (total, product) => total + product.subtotal,
       0,
-    );
+    ).toFixed(2));
   }, [orderProducts.length]);
 
   useEffect(() => {
     const quantity = watch('quantity');
     const unitaryPrice = watch('unitaryPrice');
     if (unitaryPrice) {
-      setValue('subtotal', unitaryPrice * quantity);
+      setValue('subtotal', parseFloat((unitaryPrice * quantity).toFixed(2)));
     } else {
       setValue('subtotal', 0);
     }
@@ -157,8 +157,8 @@ export const OrderForm = ({
     if (selectedFormPriceList && selectedFormProduct) {
       setValue(
         'unitaryPrice',
-        selectedFormProduct.costPrice *
-          (1 + selectedFormPriceList.margin / 100),
+        parseFloat((selectedFormProduct.costPrice *
+          (1 + selectedFormPriceList.margin / 100)).toFixed(2)),
       );
     }
   }, [selectedFormPriceList, selectedFormProduct]);
