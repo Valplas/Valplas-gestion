@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Valplas.Models;
+using Valplas.DTO;
 
 namespace Valplas.Data;
 
@@ -32,6 +33,10 @@ public class ValplasContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.Entity<ProductSalesFlatRow>().HasNoKey().ToFunction("get_daily_sales_grouped_by_product");
+
+
+
         modelBuilder.Entity<UserModel>(entity =>
         {
             // Índice único en Email
@@ -51,6 +56,9 @@ public class ValplasContext : DbContext
                     .WithOne()
                     .HasForeignKey(op => op.OrderID)
                     .OnDelete(DeleteBehavior.Cascade); // Elimina los OrderProducts si se elimina una Order
+
+            entity.HasIndex(o => new { o.OrderDate, o.IsDeleted }).HasDatabaseName("IX_Orders_OrderDate_IsDeleted");
+
         });
 
         // Configuración de ProductModel
@@ -76,6 +84,10 @@ public class ValplasContext : DbContext
             entity.HasOne(op => op.ListPrice)
                 .WithMany(lp => lp.OrderProducts)
                 .HasForeignKey(op => op.ListPriceID);
+
+            // ✅ Índice nuevo
+            entity.HasIndex(op => new { op.ProductID, op.ListPriceID })
+                  .HasDatabaseName("IX_OrderProduct_ProductID_ListPriceID");
         });
 
         modelBuilder.Entity<ProductModel>(entity =>
