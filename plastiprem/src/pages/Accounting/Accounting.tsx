@@ -9,6 +9,7 @@ import { ProductWithSalesDto } from '../../types/accountability';
 import { SkeletonRow } from '../../components/atoms/skeleton/SkeletonRow';
 import { Fragment, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
+import { Button } from '../../components/atoms/button/Button';
 
 const headers = [
   'Producto',
@@ -26,23 +27,77 @@ export const Accounting = () => {
     [date],
   );
   const totalRevenue = useMemo(() => {
-    if (data) {
-      return data.reduce((prev: number, prod) => {
-        return (
-          prev +
-          prod.salesByListPrice.reduce((prev: number, lp) => {
-            return prev + lp.totalRevenue;
-          }, 0)
-        );
-      }, 0);
+  if (data) {
+    const total = data.reduce((prev: number, prod) => {
+      return (
+        prev +
+        prod.salesByListPrice.reduce((prev: number, lp) => {
+          return prev + lp.totalRevenue;
+        }, 0)
+      );
+    }, 0);
+    return parseFloat(total.toFixed(2)); // Redondea a 2 decimales y convierte a número
+  }
+  return 0; // Valor por defecto
+}, [data, loading]); // Añadido data como dependencia
+
+  // Función para generar el CSV
+  const generateCSV = () => {
+    if (!data || data.length === 0) {
+      alert('No hay datos disponibles para generar el CSV.');
+      return;
     }
-  }, [loading]);
+
+    // Encabezados del CSV
+    const csvHeaders = [
+      'Producto',
+      'En stock',
+      'Precio compra',
+      'Lista de precios',
+      'Margen de ganancia',
+      'Cantidad vendida',
+      'Ganancia',
+    ].join(',');
+
+    // Convertir datos a filas CSV
+    const csvRows = data.flatMap((product) =>
+      product.salesByListPrice.map((list) => [
+        `"${product.productName}"`,
+        product.stock,
+        product.costPrice,
+        `"${list.listPriceName}"`,
+        `${list.margin}%`,
+        list.totalQuantity,
+        list.totalRevenue.toFixed(2),
+      ].join(','))
+    );
+
+    // Combinar encabezados y filas
+    const csvContent = [csvHeaders, ...csvRows].join('\n');
+
+    // Crear un blob y un enlace para descargar
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `ventas_${date}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+
+
   return (
     <PageContainer>
       <div className="flex justify-between items-center ">
         <h4 className=" text-xl font-semibold text-black dark:text-white">
           Resumen ventas
         </h4>
+
+            <Button label="Generar CSV" onClick={generateCSV} />
+
 
         <div className="flex gap-3">
           <input
