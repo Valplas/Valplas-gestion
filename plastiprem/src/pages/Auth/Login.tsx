@@ -24,7 +24,7 @@ export const Login = () => {
       isAuthenticated &&
       !isLoading
     ) {
-      console.log('navigate')
+
       navigate('/orders');
     }
   }, [isAuthenticated, isLoading]);

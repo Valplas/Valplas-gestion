@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Valplas.Data;
@@ -11,9 +12,11 @@ using Valplas.Data;
 namespace ValplasApi.Migrations
 {
     [DbContext(typeof(ValplasContext))]
-    partial class ValplasContextModelSnapshot : ModelSnapshot
+    [Migration("20250712041055_AddIndexOnPMAndOrder")]
+    partial class AddIndexOnPMAndOrder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -29,7 +32,6 @@ namespace ValplasApi.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("ClientAddress")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
@@ -37,36 +39,31 @@ namespace ValplasApi.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("ClientCUIT")
-                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("ClientDate")
+                    b.Property<DateTime?>("ClientDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ClientEmail")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("ClientFont")
                         .HasColumnType("text");
 
                     b.Property<string>("ClientLocality")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("ClientName")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
                     b.Property<string>("ClientNotes")
                         .HasColumnType("text");
 
-                    b.Property<decimal>("ClientNumber")
+                    b.Property<decimal?>("ClientNumber")
                         .HasColumnType("numeric");
 
                     b.Property<string>("ClientPhone")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("ClientPoint")
@@ -76,19 +73,45 @@ namespace ValplasApi.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
 
-                    b.Property<int>("ClientTaxCondition")
+                    b.Property<int?>("ClientTaxCondition")
                         .HasColumnType("integer");
 
                     b.Property<int?>("ClientType")
                         .HasColumnType("integer");
 
                     b.Property<string>("ClientWorkingHours")
-                        .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.HasKey("ClientID");
 
                     b.ToTable("Clients");
+                });
+
+            modelBuilder.Entity("Valplas.Models.ListPriceModel", b =>
+                {
+                    b.Property<Guid>("ListPriceID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Discount")
+                        .HasColumnType("numeric");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal>("Margin")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("ListPriceID");
+
+                    b.ToTable("ListPrices");
                 });
 
             modelBuilder.Entity("Valplas.Models.OrderModel", b =>
@@ -116,6 +139,9 @@ namespace ValplasApi.Migrations
                     b.Property<string>("GeoPointAddress")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<DateTime>("OrderDate")
                         .HasColumnType("timestamp with time zone");
@@ -153,6 +179,9 @@ namespace ValplasApi.Migrations
 
                     b.HasIndex("ClientID");
 
+                    b.HasIndex("OrderDate", "IsDeleted")
+                        .HasDatabaseName("IX_Orders_OrderDate_IsDeleted");
+
                     b.ToTable("Orders");
                 });
 
@@ -164,8 +193,17 @@ namespace ValplasApi.Migrations
                     b.Property<Guid>("ProductID")
                         .HasColumnType("uuid");
 
+                    b.Property<decimal>("CostPrice")
+                        .HasColumnType("numeric");
+
+                    b.Property<Guid>("ListPriceID")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
+
+                    b.Property<decimal>("Revenue")
+                        .HasColumnType("numeric");
 
                     b.Property<decimal>("Subtotal")
                         .HasColumnType("numeric");
@@ -175,7 +213,10 @@ namespace ValplasApi.Migrations
 
                     b.HasKey("OrderID", "ProductID");
 
-                    b.HasIndex("ProductID");
+                    b.HasIndex("ListPriceID");
+
+                    b.HasIndex("ProductID", "ListPriceID")
+                        .HasDatabaseName("IX_OrderProduct_ProductID_ListPriceID");
 
                     b.ToTable("OrderProducts");
                 });
@@ -189,19 +230,24 @@ namespace ValplasApi.Migrations
                     b.Property<int?>("Business")
                         .HasColumnType("integer");
 
-                    b.Property<long>("Code")
+                    b.Property<long?>("Code")
                         .HasColumnType("bigint");
 
-                    b.Property<bool>("Container")
+                    b.Property<bool?>("Container")
                         .HasColumnType("boolean");
 
+                    b.Property<decimal>("CostPrice")
+                        .HasColumnType("numeric");
+
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
                     b.Property<decimal?>("Height")
                         .HasColumnType("numeric");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
 
                     b.Property<decimal?>("Long")
                         .HasColumnType("numeric");
@@ -211,7 +257,6 @@ namespace ValplasApi.Migrations
                         .HasColumnType("character varying(255)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Origin")
@@ -289,6 +334,12 @@ namespace ValplasApi.Migrations
 
             modelBuilder.Entity("Valplas.Models.OrderProductModel", b =>
                 {
+                    b.HasOne("Valplas.Models.ListPriceModel", "ListPrice")
+                        .WithMany("OrderProducts")
+                        .HasForeignKey("ListPriceID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Valplas.Models.OrderModel", "Order")
                         .WithMany("OrderProducts")
                         .HasForeignKey("OrderID")
@@ -301,6 +352,8 @@ namespace ValplasApi.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("ListPrice");
+
                     b.Navigation("Order");
 
                     b.Navigation("Product");
@@ -309,6 +362,11 @@ namespace ValplasApi.Migrations
             modelBuilder.Entity("Valplas.Models.ClientModel", b =>
                 {
                     b.Navigation("Orders");
+                });
+
+            modelBuilder.Entity("Valplas.Models.ListPriceModel", b =>
+                {
+                    b.Navigation("OrderProducts");
                 });
 
             modelBuilder.Entity("Valplas.Models.OrderModel", b =>

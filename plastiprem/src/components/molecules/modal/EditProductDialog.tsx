@@ -36,7 +36,7 @@ const EditProductDialog = ({ open, setOpen, productId, onEdited, onCancel }: Pro
   }, [error]);
 
   const onSubmit = async (formData: ProductModel) => {
-    console.log(formData)
+
     try {
       await postData(formData, 'PUT');
       showSnackbar('Producto editado correctamente');

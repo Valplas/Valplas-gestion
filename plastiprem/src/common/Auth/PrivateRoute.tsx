@@ -13,7 +13,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
     return <Loader />; // o tu <Loader />
   }
   if (!isAuthenticated && !isLoading) {
-    console.log('asdf')
+
     return <Navigate to="/" replace />;
   }
 
