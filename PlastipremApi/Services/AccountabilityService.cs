@@ -12,41 +12,41 @@ public class AccountabilityService
     public AccountabilityService(ValplasContext context)
     {
         _context = context;
-    }public async Task<IEnumerable<ProductWithSalesDto>> GetDailySalesGroupedByProduct(DateTime date)
-{
-    var dateOnly = date.Date;
+    }
+    public async Task<IEnumerable<ProductWithSalesDto>> GetDailySalesGroupedByProduct(DateTime date)
+    {
+        var dateOnly = date.Date;
+        Console.WriteLine(dateOnly.ToString("yyyy-MM-dd"));
+        // Llamar directamente a la función con FromSqlInterpolated
+        var flatResults = await _context.Set<ProductSalesFlatRow>()
+            .FromSqlInterpolated($"SELECT * FROM get_daily_sales_grouped_by_product({date:yyyy-MM-dd}::date)")
+            .ToListAsync();
 
-    // Llamar directamente a la función con FromSqlInterpolated
-    var flatResults = await _context.Set<ProductSalesFlatRow>()
-        .FromSqlInterpolated($"select * from get_daily_sales_grouped_by_product({dateOnly})")
-        .ToListAsync();
-
-    // Agrupar y convertir al formato esperado por el frontend
-    var result = flatResults
-        .GroupBy(r => new { r.ProductID, r.ProductName, r.Stock, r.CostPrice })
-        .Select(g => new ProductWithSalesDto
-        {
-            ProductID = g.Key.ProductID,
-            ProductName = g.Key.ProductName,
-            Stock = g.Key.Stock,
-            CostPrice = g.Key.CostPrice,
-            SalesByListPrice = g.Select(item => new ProductListPriceSalesDto
+        // Agrupar y convertir al formato esperado por el frontend
+        var result = flatResults
+            .GroupBy(r => new { r.ProductID, r.ProductName, r.Stock, r.CostPrice })
+            .Select(g => new ProductWithSalesDto
             {
-                ListPriceID = item.ListPriceID,
-                ListPriceName = item.ListPriceName,
-                TotalQuantity = item.TotalQuantity,
-                TotalRevenue = item.TotalRevenue,
-                TotalCost = item.TotalCost,
-                Margin = item.Margin
+                ProductID = g.Key.ProductID,
+                ProductName = g.Key.ProductName,
+                Stock = g.Key.Stock,
+                CostPrice = g.Key.CostPrice,
+                SalesByListPrice = g.Select(item => new ProductListPriceSalesDto
+                {
+                    ListPriceID = item.ListPriceID,
+                    ListPriceName = item.ListPriceName,
+                    TotalQuantity = item.TotalQuantity,
+                    TotalRevenue = item.TotalRevenue,
+                    Margin = item.Margin
+                })
+                .OrderBy(lp => lp.ListPriceName)
+                .ToList()
             })
-            .OrderBy(lp => lp.ListPriceName)
-            .ToList()
-        })
-        .OrderBy(p => p.ProductName)
-        .ToList();
+            .OrderBy(p => p.ProductName)
+            .ToList();
 
-    return result;
-}
+        return result;
+    }
 
 
     // // Obtener un accountabilitye por su ID
@@ -57,3 +57,4 @@ public class AccountabilityService
 
 
 }
+

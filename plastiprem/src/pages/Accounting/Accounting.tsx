@@ -7,7 +7,7 @@ import useFetch from '../../hooks/useFetch';
 import { BACKEND_URL } from '../../envs';
 import { ProductWithSalesDto } from '../../types/accountability';
 import { SkeletonRow } from '../../components/atoms/skeleton/SkeletonRow';
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 
 const headers = [
@@ -65,10 +65,9 @@ export const Accounting = () => {
             ))}
           </div> // Muestra 5 filas de skeleton
         ) : (
-          data?.map((product, key) => (
-            <>
+          data?.map((product) => (
+            <Fragment key={product.productID}>
               <TableRow
-                key={key}
                 content={{
                   Producto: product.productName,
                   Stock: product.stock,
@@ -84,8 +83,7 @@ export const Accounting = () => {
                 }}
               />
               {product.salesByListPrice.some((l) => l.totalQuantity > 0) && (
-                <tr>
-                  <td colSpan={headers.length}>
+                
                     <table className="w-full mt-2 border-separate border-spacing-y-2 text-sm">
                       <thead>
                         <tr className="text-left bg-gray-800 text-white">
@@ -117,10 +115,8 @@ export const Accounting = () => {
                           ))}
                       </tbody>
                     </table>
-                  </td>
-                </tr>
               )}
-            </>
+            </Fragment>
           ))
         )}
       </TableBodyContainer>
