@@ -136,7 +136,6 @@ export const OrderForm = ({
   useEffect(() => {
     setClient(order?.client);
   }, [order?.clientID]);
-  console.log(orderProducts)
   const orderAmount = useMemo(() => {
     return orderProducts.reduce(
       (total, product) => total + product.subtotal,

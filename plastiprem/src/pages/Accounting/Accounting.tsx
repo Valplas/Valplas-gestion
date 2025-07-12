@@ -25,7 +25,6 @@ export const Accounting = () => {
     `${BACKEND_URL}/accountability${date ? `?date=${date}` : ''}`,
     [date],
   );
-
   const totalRevenue = useMemo(() => {
     if (data) {
       return data.reduce((prev: number, prod) => {

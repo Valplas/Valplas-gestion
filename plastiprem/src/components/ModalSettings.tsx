@@ -25,8 +25,7 @@ export const Modal = ({ closeModal, onSubmit, defaultValue }) => {
     } else {
       let errorFields = [];
       for (const [key, value] of Object.entries(formState)) {
-        console.log(key);
-        console.log(value);
+
         if (!value) {
           errorFields.push(key=="id"?"Bond ID":key);
         }

@@ -54,5 +54,20 @@ namespace Valplas.DTO
         public List<ProductListPriceSalesDto> SalesByListPrice { get; set; } = new();
     }
 
+public class ProductSalesFlatRow
+{
+    public Guid ProductID { get; set; }
+    public string ProductName { get; set; }
+    public int Stock { get; set; }
+    public decimal CostPrice { get; set; }
+    public Guid ListPriceID { get; set; }
+    public string ListPriceName { get; set; }
+    public int TotalQuantity { get; set; }
+    public decimal TotalRevenue { get; set; }
+    public decimal TotalCost { get; set; }
+    public decimal Margin { get; set; }
+}
+
+
 
 }
