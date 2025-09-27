@@ -23,6 +23,7 @@ export const generatePDF = (order: OrderModel) => {
   const tableRows =
     order.orderProducts?.map((row: OrderProductModel) => [
       row.product.code,
+      row.order?.address ?? '',
       row.product.description,
       row.quantity,
       `$${row.unitaryPrice}`,
@@ -31,7 +32,7 @@ export const generatePDF = (order: OrderModel) => {
 
   autoTable(doc, {
     startY: finalY,
-    head: [['Código', 'Producto', 'Cantidad', 'Precio unitario', 'Subtotal']],
+    head: [['Código','Direccion', 'Producto', 'Cantidad', 'Precio unitario', 'Subtotal']],
     body: tableRows,
     theme: 'grid',
     styles: {
