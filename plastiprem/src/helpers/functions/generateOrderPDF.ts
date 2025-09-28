@@ -15,9 +15,10 @@ export const generatePDF = (order: OrderModel) => {
   doc.text(`Cliente: ${order.client?.clientName ?? ''}`, 14, 30);
   doc.text(`Fecha alta: ${dayjs(order.orderDate).format('DD/MM/YYYY')}`, 14, 38);
   doc.text(`Monto total: $${order.amount}`, 14, 46);
+  doc.text(`Dirección: ${order.client.clientAddress}`, 14, 54);
 
   // ✅ Espaciado para la tabla
-  let finalY = 54;
+  let finalY = 60;
 
   // ✅ Datos de productos en tabla
   const tableRows =
